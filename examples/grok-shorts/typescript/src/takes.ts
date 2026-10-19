@@ -122,7 +122,7 @@ export async function speakTake(part: Part, cast: Cast, base: string, signal?: A
   await Promise.all([rm(`${base}.mp3`), rm(`${base}.jpg`)]);
   const { stdout } = await run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", `${base}.mp4`]);
   const seconds = Number(stdout.trim());
-  const heard = (await client.voice.transcribe({ file: new File([await readFile(`${base}.mp4`)], "take.mp4"), model: "grok-voice-transcribe-2.0" }, { signal })).words ?? [];
+  const heard = await hear(await readFile(`${base}.mp4`), signal);
   const start = Math.max(0, (heard[0]?.start ?? 0) - BEFORE);
   const matched = lineUp(words, heard).filter((pair) => pair?.alike).length;
   const take = { file: `${base}.mp4`, prompt: "", start, end: seconds, words: timeWords(words, heard, start, seconds), heard: matched / words.length, seconds, filmed: 0, cost: seconds * TRANSCRIPTION_USD_PER_SECOND };
@@ -173,8 +173,7 @@ async function filmAndHear(
   const result = saved ? undefined : await filmTake(prompt, cast, seconds, onProgress, signal);
   const video = result ? await download(result, file, signal) : await readFile(file);
   if (saved) onProgress(100);
-  // The transcription API reads the format from the file name.
-  const heard = (await client.voice.transcribe({ file: new File([video], "take.mp4"), model: "grok-voice-transcribe-2.0" }, { signal })).words ?? [];
+  const heard = await hear(video, signal);
   const last = heard.at(-1);
   return {
     file,
@@ -225,14 +224,34 @@ function takePrompt({ line, mood, pointAt, acting }: Part, { room, delivery }: C
     .join("\n");
 }
 
-// The video's URL is temporary, so it's downloaded right away.
-async function download(result: VideoResponse, file: string, signal?: AbortSignal): Promise<Buffer<ArrayBuffer>> {
+// The video's URL is temporary, so it's downloaded right away. The take is made and paid for by now, so a dropped
+// connection, which fetch throws as a TypeError, is tried again, up to twice.
+async function download(result: VideoResponse, file: string, signal?: AbortSignal, tries = 3): Promise<Buffer<ArrayBuffer>> {
   if (!result.video?.url) throw new Error("A take didn't pass moderation, so there's nothing to download.");
-  const response = await fetch(result.video.url, { signal });
-  if (!response.ok) throw new Error(`Couldn't download a take: ${response.status}`);
-  const video = Buffer.from(await response.arrayBuffer());
-  await writeFile(file, video);
-  return video;
+  try {
+    const response = await fetch(result.video.url, { signal });
+    if (!response.ok) throw new Error(`Couldn't download a take: ${response.status}`);
+    const video = Buffer.from(await response.arrayBuffer());
+    await writeFile(file, video);
+    return video;
+  } catch (error) {
+    if (!(error instanceof TypeError) || signal?.aborted || tries === 1) throw error;
+    await sleep(2000, undefined, { signal });
+    return download(result, file, signal, tries - 1);
+  }
+}
+
+// What's heard in a take, word by word. When the connection drops, the SDK only resends requests that just read
+// something, and transcribing changes nothing, so it's sent again here, up to twice. The API reads the format from the
+// file name.
+async function hear(video: Buffer<ArrayBuffer>, signal?: AbortSignal, tries = 3): Promise<Filmed["heard"]> {
+  try {
+    return (await client.voice.transcribe({ file: new File([video], "take.mp4"), model: "grok-voice-transcribe-2.0" }, { signal })).words ?? [];
+  } catch (error) {
+    if (!(error instanceof APIConnectionError) || signal?.aborted || tries === 1) throw error;
+    await sleep(2000, undefined, { signal });
+    return hear(video, signal, tries - 1);
+  }
 }
 
 async function filmTake(prompt: string, { portrait, voice }: Cast, seconds: number, onProgress: (percent: number) => void, signal?: AbortSignal): Promise<VideoResponse> {
