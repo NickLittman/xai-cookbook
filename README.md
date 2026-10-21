@@ -64,6 +64,7 @@ Every example is a folder under [`examples/`](examples/) with a README that expl
 | [Grok Shorts](examples/grok-shorts/) | Turn a pull request or any idea into a TikTok-style video. Grok researches it and writes it with you in a chat, and a lifelike presenter films it. | Advanced | [TypeScript](examples/grok-shorts/typescript/) |
 | [Meeting to Action Items](examples/meeting-to-action-items/) | Caption a call live by speaker, keep a running list of decisions and action items, and ask questions whose answers link to the moment in the transcript. | Advanced | [TypeScript](examples/meeting-to-action-items/typescript/) |
 | [Video Dubbing](examples/video-dubbing/) | Dub a video into another language, with each line timed to the original speech, shortened by Grok when it runs long, and mixed over the original background. | Advanced | [TypeScript](examples/video-dubbing/typescript/) |
+| [Video Jobs That Survive a Closed Tab](examples/imagine-video-jobs/) | Queue Grok Imagine videos in Postgres, render them with a scheduled worker, and watch them finish live, even after you close the tab. | Advanced | [TypeScript](examples/imagine-video-jobs/typescript/) |
 | [WebRTC Voice Agent](examples/voice-agent-webrtc/) | A low-latency browser voice agent that uses WebRTC between the browser and a server, which connects to xAI over WebSocket. | Advanced | [TypeScript](examples/voice-agent-webrtc/) |
 <!-- catalog:end -->
 

@@ -537,6 +537,20 @@
   level: advanced
   languages:
   - typescript
+- title: Video Jobs That Survive a Closed Tab
+  seo_title: Background Video Generation Queue with Grok Imagine and Postgres
+  path: examples/imagine-video-jobs/README.md
+  icon: clock
+  description: Queue Grok Imagine videos in Postgres, render them with a scheduled worker, and watch them finish live, even after you close the tab.
+  date: 2026-10-16
+  authors:
+  - Nick Littman
+  tags:
+  - video-generation
+  type: app
+  level: advanced
+  languages:
+  - typescript
 - title: WebRTC Voice Agent
   seo_title: 'WebRTC Voice Agent: Low-Latency Voice AI with the Grok API'
   path: examples/voice-agent-webrtc/README.md
