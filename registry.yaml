@@ -172,6 +172,23 @@
   level: intermediate
   languages:
   - typescript
+- title: Long-Term Memory over MCP
+  seo_title: 'Long-Term Memory per User: Remote MCP Server with the Grok API'
+  path: examples/grok-memory-over-mcp/README.md
+  icon: person
+  description: Give Grok a long-term memory for each user through a remote MCP server on Supabase, where Postgres row-level security keeps every user's memories private.
+  date: 2026-10-16
+  authors:
+  - Nick Littman
+  tags:
+  - mcp
+  - chat
+  - streaming
+  - reasoning
+  type: app
+  level: intermediate
+  languages:
+  - typescript
 - title: Mobile Voice Apps
   seo_title: 'Mobile Voice Assistant: iOS and Android Apps with the Grok API'
   path: examples/voice-agent-mobile/README.md
